@@ -1,5 +1,5 @@
 diff --git a/chrome/android/java/AndroidManifest.xml b/chrome/android/java/AndroidManifest.xml
-index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9f355a5c1 100644
+index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..8331ad5e914ee14c82639f84b6805f2d49425e8e 100644
 --- a/chrome/android/java/AndroidManifest.xml
 +++ b/chrome/android/java/AndroidManifest.xml
 @@ -62,7 +62,9 @@ by a child template that "extends" this file.
@@ -71,7 +71,7 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
  
      <!-- Permission for using Android 14's credential management framework. -->
      <uses-permission android:name="android.permission.CREDENTIAL_MANAGER_QUERY_CANDIDATE_CREDENTIALS"/>
-@@ -173,11 +187,14 @@ by a child template that "extends" this file.
+@@ -173,11 +187,22 @@ by a child template that "extends" this file.
      <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
      <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
  
@@ -83,10 +83,18 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
      <uses-permission android:name="android.permission.USE_PINNED_WINDOWING_LAYER" />
  
 +    <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE"/>
++
++    <!-- Android Auto: permissions declared by car apps that render their own
++         content on the car display. Brave does not use the Car App Library, but
++         Android Auto checks for these declarations before granting a full
++         screen surface to a navigation-category app (same approach as
++         AA Browser). -->
++    <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
++    <uses-permission android:name="androidx.car.app.MAP_TEMPLATES" />
      {% block extra_uses_permissions %}
      {% endblock %}
  
-@@ -397,6 +414,7 @@ by a child template that "extends" this file.
+@@ -397,6 +422,7 @@ by a child template that "extends" this file.
              <intent-filter>
                  <action android:name="com.sec.android.airview.HOVER" />
              </intent-filter>
@@ -94,7 +102,52 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
              <meta-data android:name="android.app.searchable"
                  android:resource="@xml/searchable" />
          </activity-alias>
-@@ -1012,6 +1030,7 @@ by a child template that "extends" this file.
+@@ -668,6 +694,44 @@ by a child template that "extends" this file.
+             {% endblock %}
+             <property android:name="android.window.PROPERTY_SUPPORTS_MULTI_INSTANCE_SYSTEM_UI"
+                 android:value="true" />
++
++            <!--
++              Android Auto integration (Brave only).
++
++              Android Auto hands a full-screen, self-drawn surface to apps that
++              advertise the navigation category. This lets Brave render its own
++              browser UI (and video) on the car display instead of being limited
++              to a template based Car App. The activity is marked as
++              distraction optimized, matching the reference AA Browser app.
++
++              Android Auto only lists this component when the user enables
++              "Unknown sources" in the Android Auto developer settings.
++            -->
++            <meta-data android:name="distractionOptimized" android:value="true" />
++            <meta-data android:name="android.max_aspect" android:value="5.0" />
++            <intent-filter>
++                <action android:name="android.intent.action.MAIN" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.CAR_LAUNCHER" />
++                <category android:name="androidx.car.app.category.NAVIGATION" />
++                <category android:name="android.intent.category.APP_MAPS" />
++            </intent-filter>
++            <intent-filter>
++                <action android:name="android.intent.action.VIEW" />
++                <category android:name="android.intent.category.DEFAULT" />
++                <category android:name="android.intent.category.BROWSABLE" />
++                <category android:name="android.intent.category.CAR_LAUNCHER" />
++                <category android:name="androidx.car.app.category.NAVIGATION" />
++                <category android:name="android.intent.category.APP_MAPS" />
++                <data android:scheme="http" />
++                <data android:scheme="https" />
++            </intent-filter>
++            <layout
++                android:minWidth="1dp"
++                android:minHeight="1dp"
++                android:gravity="fill"
++                android:defaultWidth="800dp"
++                android:defaultHeight="480dp" />
+         </activity>
+         <activity-alias android:name="com.google.android.apps.chrome.Main"
+             android:targetActivity="org.chromium.chrome.browser.ChromeTabbedActivity"
+@@ -1012,6 +1076,7 @@ by a child template that "extends" this file.
          </service>
  
          <!-- Quick Action Search widget -->
@@ -102,7 +155,7 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
          <receiver
              android:name="org.chromium.chrome.browser.quickactionsearchwidget.QuickActionSearchWidgetProvider$QuickActionSearchWidgetProviderSearch"
              android:label="@string/quick_action_search_widget_title"
-@@ -1042,6 +1061,8 @@ by a child template that "extends" this file.
+@@ -1042,6 +1107,8 @@ by a child template that "extends" this file.
                  android:resource="@xml/quick_action_search_widget_dino_info" />
          </receiver>
  
@@ -111,7 +164,7 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
          <!-- Bookmarks widget -->
          <receiver android:name="com.google.android.apps.chrome.appwidget.bookmarks.BookmarkThumbnailWidgetProvider"
              android:label="@string/bookmark_widget_title"
-@@ -1260,7 +1281,7 @@ by a child template that "extends" this file.
+@@ -1260,7 +1327,7 @@ by a child template that "extends" this file.
  
          <service android:name="org.chromium.chrome.browser.media.MediaCaptureNotificationService"
              {% if enable_screen_capture == "true" %}
@@ -120,7 +173,7 @@ index 4f8d01457384ae8d3eebc1cf972dcbf769c1ffc2..ea117009be8889a61baceedfdd932cc9
              {% else %}
              android:foregroundServiceType="camera|microphone"
              {% endif %}
-@@ -1353,6 +1374,7 @@ by a child template that "extends" this file.
+@@ -1353,6 +1420,7 @@ by a child template that "extends" this file.
            </activity>
          {% endif %}
  
