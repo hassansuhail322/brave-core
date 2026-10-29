@@ -17,6 +17,7 @@ declare_args() {
 
 brave_android_manifest_includes = [
   "//brave/android/java/AndroidManifest.xml",
+  "//brave/android/java/AndroidManifest_car_launcher.xml",
   "//brave/android/java/AndroidManifest_intent_filters.xml",
   "//brave/android/java/AndroidManifest_widgets.xml",
 ]

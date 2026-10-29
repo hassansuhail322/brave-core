@@ -685,7 +685,6 @@ android_resources("java_resources") {
     "java/brave-res/values/dimens.xml",
     "java/brave-res/values/shimmer_attrs.xml",
     "java/brave-res/xml/autofill_service_configuration.xml",
-    "java/brave-res/xml/automotive_app_desc.xml",
     "java/brave-res/xml/background_images_preferences.xml",
     "java/brave-res/xml/brave_appearance_preferences.xml",
     "java/brave-res/xml/brave_download_preferences.xml",

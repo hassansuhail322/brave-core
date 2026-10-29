@@ -1,21 +1,3 @@
-<!--
-  Android Auto integration.
-
-  Brave is exposed on the car display through the Android Auto projection
-  protocol, without a CarAppService/template UI. ChromeTabbedActivity declares
-  the CAR_LAUNCHER + androidx.car.app.category.NAVIGATION categories (see the
-  ChromeTabbedActivity definition in //chrome/android/java/AndroidManifest.xml)
-  so Android Auto hands it a full screen surface, exactly like AA Browser.
-
-  Note: this only works when the user enables "Unknown sources" in Android
-  Auto's developer settings, because Brave is not an approved car app.
--->
-<meta-data android:name="distractionOptimized" android:value="true" />
-<meta-data android:name="android.max_aspect" android:value="4.0" />
-<meta-data android:name="androidx.car.app.minCarApiLevel" android:value="7" />
-<meta-data android:name="com.google.android.gms.car.application"
-    android:resource="@xml/automotive_app_desc" />
-
 <receiver android:name="org.chromium.chrome.browser.notifications.retention.RetentionNotificationPublisher"
     android:exported="false">
 </receiver>
@@ -191,8 +173,7 @@
 <service
     android:name="com.brave.playlist.playback_service.VideoPlaybackService"
     android:foregroundServiceType="mediaPlayback"
-    android:exported="true"
-    android:permission="android.permission.BIND_MEDIA_BROWSER_SERVICE">
+    android:exported="false">
     <intent-filter>
         <action android:name="androidx.media3.session.MediaSessionService"/>
         <action android:name="android.media.browse.MediaBrowserService"/>

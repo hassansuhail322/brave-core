@@ -138,6 +138,26 @@ substitutions:
         \1\2
 
   - description: |
+      Limit experimental AA Browser-style game categorization to local Debug.
+    regex:
+      re_pattern: '^([ \t]*)(\{% block extra_application_attributes %\}\{% endblock %\}>)'
+      re_flags: [MULTILINE]
+      replace: |-
+        \1{% if channel == "default" and is_debug == "true" %}
+        \1android:appCategory="game"
+        \1{% endif %}
+        \1\2
+
+  - description: |
+      Use the existing phone launcher alias for experimental parked launch.
+    regex:
+      re_pattern: '(<activity-alias android:name="com\.google\.android\.apps\.chrome\.Main"\s.*?<intent-filter>.*?)([ \t]*</intent-filter>)'
+      re_flags: [DOTALL]
+      replace: |-
+        \1                {% include "//brave/android/java/AndroidManifest_car_launcher.xml" %}
+        \2
+
+  - description: |
       Disable the Quick Action Search widget.
 
       Brave does not ship this widget or its dino variant.

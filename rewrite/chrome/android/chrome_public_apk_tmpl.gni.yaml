@@ -4,6 +4,11 @@
 # You can obtain one at https://mozilla.org/MPL/2.0/.
 
 substitutions:
+  - description: Expose Debug configuration to the experimental car manifest.
+    add_literal_to_variable:
+      variable: default_chrome_public_jinja_variables
+      literal: '[ "is_debug=$is_debug" ]'
+
   - description: Keep the Brave resources the exclusion regex would drop.
     add_literal_to_list:
       target: target_name

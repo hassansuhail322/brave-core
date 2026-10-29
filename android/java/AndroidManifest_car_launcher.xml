@@ -1,0 +1,4 @@
+{# Experimental AA Browser-style parked launch; the host retains eligibility control. #}
+{% if channel == "default" and is_debug == "true" %}
+<category android:name="android.intent.category.CAR_LAUNCHER" />
+{% endif %}

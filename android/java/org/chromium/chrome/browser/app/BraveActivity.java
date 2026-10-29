@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
@@ -25,6 +26,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -1149,7 +1151,9 @@ public abstract class BraveActivity extends ChromeActivity
 
     @Override
     public void onResume() {
+        logBrowserDisplayState("resume.begin", getIntent());
         super.onResume();
+        logBrowserDisplayState("resume.end", getIntent());
         mIsProcessingPendingDappsTxRequest = false;
 
         PostTask.postTask(
@@ -1171,6 +1175,7 @@ public abstract class BraveActivity extends ChromeActivity
     @Override
     public void performPostInflationStartup() {
         super.performPostInflationStartup();
+        logBrowserDisplayState("postInflation", getIntent());
 
         createNotificationChannel();
     }
@@ -1280,6 +1285,7 @@ public abstract class BraveActivity extends ChromeActivity
 
     @Override
     public void finishNativeInitialization() {
+        logBrowserDisplayState("nativeInitialization.begin", getIntent());
         super.finishNativeInitialization();
 
         boolean isFirstInstall = PackageUtils.isFirstInstall(this);
@@ -1481,6 +1487,7 @@ public abstract class BraveActivity extends ChromeActivity
         initWalletNativeServices();
 
         mNativeInitialized = true;
+        logBrowserDisplayState("nativeInitialization.ready", getIntent());
 
         if (countryCode.equals(BraveConstants.INDIA_COUNTRY_CODE)
                 && ChromeSharedPreferences.getInstance()
@@ -2595,6 +2602,7 @@ public abstract class BraveActivity extends ChromeActivity
 
     @Override
     public void onNewIntent(Intent intent) {
+        logBrowserDisplayState("newIntent", intent);
         boolean isOriginPromoDeepLink = BraveOriginDeepLinkHandler.consumeFromIntent(intent);
         super.onNewIntent(intent);
         if (isOriginPromoDeepLink) {
@@ -2656,6 +2664,7 @@ public abstract class BraveActivity extends ChromeActivity
 
     @Override
     public void performPreInflationStartup() {
+        logBrowserDisplayState("preInflation", getIntent());
         BraveDbUtil dbUtil = BraveDbUtil.getInstance();
         if (dbUtil.dbOperationRequested()) {
             AlertDialog dialog =
@@ -2681,6 +2690,37 @@ public abstract class BraveActivity extends ChromeActivity
         mRootUiCoordinator
                 .getIncognitoReauthControllerSupplier()
                 .onAvailable(irc -> mIncognitoReauthController = irc);
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        logBrowserDisplayState(hasFocus ? "focus.gained" : "focus.lost", getIntent());
+    }
+
+    // Non-default displays are not necessarily Android Auto. Never log URLs or extras.
+    private void logBrowserDisplayState(String stage, @Nullable Intent intent) {
+        if ((getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) == 0) return;
+        Display display =
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                        ? getDisplay()
+                        : getWindowManager().getDefaultDisplay();
+        Configuration config = getResources().getConfiguration();
+        Log.i(
+                "BraveDisplay",
+                "%s activity=%s task=%d display=%d sizeDp=%dx%d densityDpi=%d"
+                        + " action=%s component=%s nativeReady=%b finishing=%b",
+                stage,
+                getClass().getSimpleName(),
+                getTaskId(),
+                display == null ? Display.INVALID_DISPLAY : display.getDisplayId(),
+                config.screenWidthDp,
+                config.screenHeightDp,
+                config.densityDpi,
+                intent == null ? null : intent.getAction(),
+                intent == null ? null : intent.getComponent(),
+                mNativeInitialized,
+                isFinishing());
     }
 
     @Override
